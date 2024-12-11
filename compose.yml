@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  server:
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: ./certificates/certificates.json
+    build:
+      context: ./server
+      dockerfile: ./Dockerfile
+    ports:
+      - "6001:6001"
+    volumes:
+      - ./server:/app

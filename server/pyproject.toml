@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "server"
+version = "0.1.0"
+description = ""
+authors = ["hiroky1983 <hirockysan1983@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Flask = "^3.1.0"
+requests = "^2.32.3"
+Flask-Cors = "^5.0.0"
+fastapi = {extras = ["all"], version = "^0.115.5"}
+pydantic = "^2.10.2"
+uvicorn = "^0.32.1"
+google = "^3.0.0"
+google-auth = "^2.36.0"
+google-cloud-speech = "^2.28.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
