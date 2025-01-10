@@ -72,6 +72,7 @@ def translate(request: TranslationRequest,     authorization: str = Header(None)
         "x-goog-user-project": project_id,
         "Content-Type": "application/json; charset=utf-8"
     }
+
     payload = {
         "q": text,
         "source": source_language,
@@ -172,7 +173,7 @@ def speech_to_text(request: SpeechToTextRequest):
 
         # トランスクリプトが空の場合のエラーハンドリング
         if not transcripts:
-            return {"error": "No transcription available"}
+            raise HTTPException(status_code=400 , detail="No transcription available")
 
         return {"transcripts": transcripts}
 
@@ -184,4 +185,4 @@ def speech_to_text(request: SpeechToTextRequest):
 # 実行用エントリポイント（uvicornを利用することを想定）
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=6001)
+    uvicorn.run("server:app", host="0.0.0.0", port=6001, reload=True)

@@ -32,5 +32,5 @@ COPY . .
 EXPOSE 6001
 
 # アプリケーションを実行
-# CMD ["poetry", "run", "python", "main.py"]
-CMD ["python3", "main.py"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "6001", "--reload"]
+# CMD ["python3", "main.py"]
