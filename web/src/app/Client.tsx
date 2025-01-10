@@ -9,7 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { headers } from "@/lib/header";
 import axios from "axios";
 
-const Client = () => {
+type Props = {
+  token: string;
+};
+
+const Client = ({ token }: Props) => {
   const [inputWord, setInputWord] = useState("");
   const [translation, setTranslation] = useState("");
   const [audioSrc, setAudioSrc] = useState("");
@@ -18,14 +22,12 @@ const Client = () => {
 
   const handleTranslate = async () => {
     setAudioSrc("");
-    const header = await headers();
-
     const textData = await axios.post(
       "http://localhost:6001/api/translate",
       {
         text: inputWord, // リクエストボディ
       },
-      header
+      headers(token)
     );
 
     setTranslation(textData.data.translatedText);
@@ -36,7 +38,7 @@ const Client = () => {
         text: textData.data.translatedText, // リクエストボディ
       },
 
-      header
+      headers(token)
     );
 
     setAudioSrc(voiceData.data.audioContent);

@@ -26,7 +26,11 @@ type Message = {
 
 type RecordingState = "idle" | "recording" | "processing";
 
-export const Client = () => {
+type Props = {
+  token: string;
+};
+
+export const Client = ({ token }: Props) => {
   const [inputMessage, setInputMessage] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
@@ -136,7 +140,6 @@ export const Client = () => {
   };
 
   const handleAudioData = async (audioBlob: Blob) => {
-    const header = await headers();
     console.log("Audio data:", audioBlob);
 
     const reader = new FileReader();
@@ -147,7 +150,7 @@ export const Client = () => {
       const data = await axios.post(
         "http://localhost:6001/api/speech-to-text",
         { audio: base64Audio },
-        header
+        headers(token)
       );
       console.log("Speech to text result:", data.data);
       if (data.status !== 200) {

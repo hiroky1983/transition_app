@@ -1,11 +1,7 @@
-import axios from "axios";
-
-export const headers = async () => {
-  const token = await axios.get("http://localhost:6001/api/get-access-token");
-
+export const headers = (token: string) => {
   const header = {
     headers: {
-      Authorization: `Bearer ${token.data.token}`, // アクセストークンをヘッダーに追加
+      Authorization: `Bearer ${token}`, // アクセストークンをヘッダーに追加
     },
   };
 
