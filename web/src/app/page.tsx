@@ -13,6 +13,7 @@ export default async function VocabularyPage() {
       <h1 className="text-2xl font-bold mb-4">単語帳</h1>
       <Suspense fallback={<div>Loading...</div>}>
         <p>Health: {data.status}</p>
+        <p>Token: {token.token}</p>
       </Suspense>
       <Client token={token.token} />
     </div>
