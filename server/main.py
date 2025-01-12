@@ -33,7 +33,7 @@ class TextToSpeechRequest(BaseModel):
 
 # リクエストボディのモデル
 class SpeechToTextRequest(BaseModel):
-    audio: str  # Base64エンコードされた音声データ
+    audio: bytes  # Base64エンコードされた音声データ
 
 load_dotenv()
 project_id = os.getenv('PROJECT_ID')
@@ -147,15 +147,16 @@ def speech_to_text(request: SpeechToTextRequest):
     """
     try:
         # 音声データをデコード
-        audio_data = base64.b64decode(request.audio)
+        # audio_data = base64.b64decode(request.audio)
 
         # データサイズを検証
-        if len(audio_data) > MAX_ALLOWED_SIZE:
-            raise HTTPException(status_code=400, detail="Audio data too large")
+        # if len(audio_data) > MAX_ALLOWED_SIZE:
+        #     raise HTTPException(status_code=400, detail="Audio data too large")
 
         # RecognitionAudio オブジェクトを作成
-        audio = speech.RecognitionAudio(content=audio_data)
+        audio = speech.RecognitionAudio(content=request.audio)
 
+        print(request.audio)
         # RecognitionConfig を設定
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,

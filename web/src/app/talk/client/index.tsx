@@ -78,7 +78,7 @@ export const Client = ({ token }: Props) => {
     if (isGood) {
       toast({
         title: "フィードバックを送信しました",
-        description: "ありがとうござ���ます。システムの改善に役立てます。",
+        description: "ありがとうございます。システムの改善に役立てます。",
       });
     } else {
       setIsBadFeedbackDialogOpen(true);
@@ -147,13 +147,15 @@ export const Client = ({ token }: Props) => {
     reader.onloadend = async () => {
       const base64Audio = reader.result?.toString().split(",")[1]; // Base64 部分を抽出
 
-      const data = await axios.post(
-        "http://localhost:6001/api/speech-to-text",
-        { audio: base64Audio },
-        headers(token)
-      );
-      console.log("Speech to text result:", data.data);
-      if (data.status !== 200) {
+      try {
+        const data = await axios.post(
+          "http://localhost:6001/api/speech-to-text",
+          { audio: base64Audio },
+          headers(token)
+        );
+        console.log("Speech to text result:", data.data);
+      } catch (error) {
+        console.error("Error:", error);
         toast({
           title: "エラー",
           description: "音声入力の処理に失敗しました。",
@@ -169,6 +171,7 @@ export const Client = ({ token }: Props) => {
       }, 1500);
     };
   };
+
   return (
     <div className="space-y-4">
       <div className="bg-gray-100 p-4 rounded-md h-96 overflow-y-auto">
