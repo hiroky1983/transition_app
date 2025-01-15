@@ -144,12 +144,10 @@ export const Client = ({ token }: Props) => {
   };
 
   const handleAudioData = async (audioFile: File) => {
-    console.log("Audio data:", audioFile);
-
     const formData = new FormData();
     formData.append("audio", audioFile);
     try {
-      const data = await axios.post(
+      const res = await axios.post(
         "http://localhost:6001/api/speech-to-text",
         formData,
         {
@@ -159,7 +157,9 @@ export const Client = ({ token }: Props) => {
           },
         }
       );
-      console.log("Speech to text result:", data.data);
+
+      setInputMessage(res.data.transcripts[0]);
+      console.log("Speech to text result:", res.data);
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -171,12 +171,10 @@ export const Client = ({ token }: Props) => {
       return;
     }
     setTimeout(() => {
-      setInputMessage("これは音声入力のシミュレーション結果です。");
       setRecordingState("idle");
       setIsEditing(true);
     }, 1500);
   };
-  // };
 
   return (
     <div className="space-y-4">
