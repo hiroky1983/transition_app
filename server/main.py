@@ -146,8 +146,6 @@ async def speech_to_text(audio: UploadFile):
     :return: 音声認識の結果
     """
     try:
-        print("audio")
-        print(audio)
         # 音声データを読み込む
         audio_data = await audio.read()
         # データサイズを検証
@@ -158,7 +156,7 @@ async def speech_to_text(audio: UploadFile):
         audio_content = speech.RecognitionAudio(content=audio_data)
         # RecognitionConfig を設定
         config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            encoding=speech.RecognitionConfig.AudioEncoding.ENCODING_UNSPECIFIED,
             sample_rate_hertz=48000,
             language_code="vi-VN",
         )
