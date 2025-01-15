@@ -150,14 +150,12 @@ async def speech_to_text(audio: UploadFile):
         print(audio)
         # 音声データを読み込む
         audio_data = await audio.read()
-        print("audio_data")
-        print(audio_data)
         # データサイズを検証
         if len(audio_data) > MAX_ALLOWED_SIZE:
             raise HTTPException(status_code=400, detail="Audio data too large")
 
         # RecognitionAudio オブジェクトを作成
-        audio = speech.RecognitionAudio(content=audio_data)
+        audio_content = speech.RecognitionAudio(content=audio_data)
         # RecognitionConfig を設定
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -166,7 +164,7 @@ async def speech_to_text(audio: UploadFile):
         )
 
         # Google Cloud Speech-to-Text API を呼び出す
-        response = client.recognize(config=config, audio=audio)
+        response = client.recognize(config=config, audio=audio_content)
         print(response.results)
         # トランスクリプトを抽出
         transcripts = [
