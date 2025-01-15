@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-import { headers } from "@/lib/header";
+// import { headers } from "@/lib/header";
 
 type Message = {
   role: "user" | "ai";
@@ -114,7 +114,11 @@ export const Client = ({ token }: Props) => {
           type: "audio/wav",
         });
         audioChunksRef.current = [];
-        handleAudioData(audioBlob);
+
+        const audioFile = new File([audioBlob], "audio.wav", {
+          type: "audio/wav",
+        });
+        handleAudioData(audioFile);
       };
 
       mediaRecorderRef.current.start();
@@ -139,38 +143,40 @@ export const Client = ({ token }: Props) => {
     }
   };
 
-  const handleAudioData = async (audioBlob: Blob) => {
-    console.log("Audio data:", audioBlob);
+  const handleAudioData = async (audioFile: File) => {
+    console.log("Audio data:", audioFile);
 
-    const reader = new FileReader();
-    reader.readAsDataURL(audioBlob);
-    reader.onloadend = async () => {
-      const base64Audio = reader.result?.toString().split(",")[1]; // Base64 部分を抽出
-
-      try {
-        const data = await axios.post(
-          "http://localhost:6001/api/speech-to-text",
-          { audio: base64Audio },
-          headers(token)
-        );
-        console.log("Speech to text result:", data.data);
-      } catch (error) {
-        console.error("Error:", error);
-        toast({
-          title: "エラー",
-          description: "音声入力の処理に失敗しました。",
-          variant: "destructive",
-        });
-        setRecordingState("idle");
-        return;
-      }
-      setTimeout(() => {
-        setInputMessage("これは音声入力のシミュレーション結果です。");
-        setRecordingState("idle");
-        setIsEditing(true);
-      }, 1500);
-    };
+    const formData = new FormData();
+    formData.append("audio", audioFile);
+    try {
+      const data = await axios.post(
+        "http://localhost:6001/api/speech-to-text",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Speech to text result:", data.data);
+    } catch (error) {
+      console.error("Error:", error);
+      toast({
+        title: "エラー",
+        description: "音声入力の処理に失敗しました。",
+        variant: "destructive",
+      });
+      setRecordingState("idle");
+      return;
+    }
+    setTimeout(() => {
+      setInputMessage("これは音声入力のシミュレーション結果です。");
+      setRecordingState("idle");
+      setIsEditing(true);
+    }, 1500);
   };
+  // };
 
   return (
     <div className="space-y-4">

@@ -2,7 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import requests
 import json
 import base64
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException, Header, File, UploadFile
 from pydantic import BaseModel
 import google.auth
 import google.auth.transport.requests
@@ -33,7 +33,7 @@ class TextToSpeechRequest(BaseModel):
 
 # リクエストボディのモデル
 class SpeechToTextRequest(BaseModel):
-    audio: bytes  # Base64エンコードされた音声データ
+    audio: UploadFile  # 音声ファイル　〇〇.wav
 
 load_dotenv()
 project_id = os.getenv('PROJECT_ID')
@@ -139,24 +139,25 @@ def text_to_speech(
 
 
 @app.post("/api/speech-to-text")
-def speech_to_text(request: SpeechToTextRequest):
+async def speech_to_text(audio: UploadFile):
     """
     音声データをテキストに変換するエンドポイント。
-    :param request: SpeechToTextRequest (Base64エンコードされた音声データ)
+    :param audio: UploadFile (音声データ)
     :return: 音声認識の結果
     """
     try:
-        # 音声データをデコード
-        # audio_data = base64.b64decode(request.audio)
-
+        print("audio")
+        print(audio)
+        # 音声データを読み込む
+        audio_data = await audio.read()
+        print("audio_data")
+        print(audio_data)
         # データサイズを検証
-        # if len(audio_data) > MAX_ALLOWED_SIZE:
-        #     raise HTTPException(status_code=400, detail="Audio data too large")
+        if len(audio_data) > MAX_ALLOWED_SIZE:
+            raise HTTPException(status_code=400, detail="Audio data too large")
 
         # RecognitionAudio オブジェクトを作成
-        audio = speech.RecognitionAudio(content=request.audio)
-
-        print(request.audio)
+        audio = speech.RecognitionAudio(content=audio_data)
         # RecognitionConfig を設定
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -174,12 +175,10 @@ def speech_to_text(request: SpeechToTextRequest):
 
         # トランスクリプトが空の場合のエラーハンドリング
         if not transcripts:
-            raise HTTPException(status_code=400 , detail="No transcription available")
+            raise HTTPException(status_code=400, detail="No transcription available")
 
         return {"transcripts": transcripts}
 
-    except base64.binascii.Error as e:
-        raise HTTPException(status_code=400, detail="Invalid audio data format") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
