@@ -186,7 +186,6 @@ async def speech_to_text(audio: UploadFile):
     
 @app.post("/api/gemini")
 def gemini(request: GeminiRequest):
-    print(request)
     gemini_pro = genai.GenerativeModel("gemini-1.5-flash")
     prompt = request.text + ", Please reply in Vietnamese to the above words"
     response = gemini_pro.generate_content(prompt)
