@@ -9,7 +9,7 @@ import google.auth.transport.requests
 import os
 from dotenv import load_dotenv
 from google.cloud import speech
-
+import google.generativeai as genai
 
 app = FastAPI()
 app.add_middleware(
@@ -35,8 +35,14 @@ class TextToSpeechRequest(BaseModel):
 class SpeechToTextRequest(BaseModel):
     audio: UploadFile  # 音声ファイル　〇〇.wav
 
+class GeminiRequest(BaseModel):
+    text: str
+
 load_dotenv()
-project_id = os.getenv('PROJECT_ID')
+project_id = os.getenv('GOOGLE_PROJECT_ID')
+gemini_api_key = os.getenv('GOOGLE_GEMINI_API_KEY')
+
+genai.configure(api_key=gemini_api_key)
 
 MAX_ALLOWED_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
@@ -177,6 +183,14 @@ async def speech_to_text(audio: UploadFile):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    
+@app.post("/api/gemini")
+def gemini(request: GeminiRequest):
+    print(request)
+    gemini_pro = genai.GenerativeModel("gemini-1.5-flash")
+    prompt = request.text + ", Please reply in Vietnamese to the above words"
+    response = gemini_pro.generate_content(prompt)
+    return {"text": response.text}
 
 # 実行用エントリポイント（uvicornを利用することを想定）
 if __name__ == "__main__":

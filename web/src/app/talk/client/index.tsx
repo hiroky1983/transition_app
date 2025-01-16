@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
-// import { headers } from "@/lib/header";
 
 type Message = {
   role: "user" | "ai";
@@ -45,25 +44,22 @@ export const Client = ({ token }: Props) => {
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    // TODO: Implement actual translation API call
-    const fakeTranslate = (text: string) =>
-      `${text} (ベトナム語に翻訳された文)`;
-
     const userMessage: Message = {
       role: "user",
       content: inputMessage,
-      translation: fakeTranslate(inputMessage),
     };
 
     // Add user message to conversation
     setConversation((prev) => [...prev, userMessage]);
 
-    // TODO: Implement API call for AI response
-    const aiResponse =
-      "Xin chào! Rất vui được gặp bạn. (こんにちは！お会いできて嬉しいです。)";
-
+    const res = await axios.post("http://localhost:6001/api/gemini", {
+      text: inputMessage,
+    });
     // Add AI response to conversation
-    setConversation((prev) => [...prev, { role: "ai", content: aiResponse }]);
+    setConversation((prev) => [
+      ...prev,
+      { role: "ai", content: res.data.text },
+    ]);
 
     setInputMessage("");
     setIsEditing(false);
@@ -195,14 +191,6 @@ export const Client = ({ token }: Props) => {
               {message.role === "user" && message.translation && (
                 <div className="mt-2 text-sm text-gray-200">
                   <p>{message.translation}</p>
-                  <Button
-                    onClick={() => handlePlayAudio(message.translation || "")}
-                    size="sm"
-                    className="mt-1"
-                    aria-label="発音を聞く"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </Button>
                 </div>
               )}
               {message.role === "ai" && (
