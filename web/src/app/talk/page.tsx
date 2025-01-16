@@ -6,7 +6,6 @@ export default async function ConversationPage() {
   return (
     <div className="container mx-auto px-4">
       <h1 className="text-2xl font-bold mb-4">会話練習</h1>
-      <p>Token: {token.token}</p>
       <Client token={token.token} />
     </div>
   );
