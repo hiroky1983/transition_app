@@ -33,4 +33,3 @@ EXPOSE 6001
 
 # アプリケーションを実行
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "6001", "--reload"]
-# CMD ["python3", "main.py"]
