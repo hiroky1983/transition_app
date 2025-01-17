@@ -1,8 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import json
-import base64
-from fastapi import FastAPI, HTTPException, Header, File, UploadFile
+from fastapi import FastAPI, HTTPException, Header, UploadFile
 from pydantic import BaseModel
 import google.auth
 import google.auth.transport.requests
