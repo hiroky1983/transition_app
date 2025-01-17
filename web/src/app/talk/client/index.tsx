@@ -2,15 +2,6 @@
 
 import React from "react";
 import { Volume2, Mic, Send, Edit2, StopCircle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
@@ -29,14 +20,18 @@ type Props = {
   token: string;
 };
 
+// enum Language {
+//   EN = "en",
+//   VI = "vi",
+//   JA = "ja",
+// }
+
 export const Client = ({ token }: Props) => {
   const [inputMessage, setInputMessage] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  const [isBadFeedbackDialogOpen, setIsBadFeedbackDialogOpen] = useState(false);
-  const [badFeedbackText, setBadFeedbackText] = useState("");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -68,28 +63,6 @@ export const Client = ({ token }: Props) => {
   const handlePlayAudio = (message: string) => {
     // TODO: Implement audio playback
     console.log("Playing audio:", message);
-  };
-
-  const handleSendFeedback = (isGood: boolean) => {
-    if (isGood) {
-      toast({
-        title: "フィードバックを送信しました",
-        description: "ありがとうございます。システムの改善に役立てます。",
-      });
-    } else {
-      setIsBadFeedbackDialogOpen(true);
-    }
-  };
-
-  const handleSendBadFeedback = () => {
-    // TODO: Implement bad feedback submission
-    console.log("Bad feedback:", badFeedbackText);
-    toast({
-      title: "フィードバックを送信しました",
-      description: "ご意見ありがとうございます。システムの改善に役立てます。",
-    });
-    setIsBadFeedbackDialogOpen(false);
-    setBadFeedbackText("");
   };
 
   const startRecording = async () => {
@@ -260,49 +233,6 @@ export const Client = ({ token }: Props) => {
         >
           <Send className="w-4 h-4" />
         </Button>
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button
-          onClick={() => handleSendFeedback(true)}
-          variant="outline"
-          aria-label="良いフィードバック"
-        >
-          👍 Good
-        </Button>
-        <Dialog
-          open={isBadFeedbackDialogOpen}
-          onOpenChange={setIsBadFeedbackDialogOpen}
-        >
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => handleSendFeedback(false)}
-              variant="outline"
-              aria-label="悪いフィードバック"
-            >
-              👎 Bad
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>フィードバックを送信</DialogTitle>
-              <DialogDescription>
-                改善すべき点を具体的に教えてください。
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Input
-                value={badFeedbackText}
-                onChange={(e) => setBadFeedbackText(e.target.value)}
-                placeholder="フィードバックを入力してください"
-              />
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSendBadFeedback} type="submit">
-                送信
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
