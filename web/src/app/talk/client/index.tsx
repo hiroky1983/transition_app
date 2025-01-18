@@ -16,17 +16,13 @@ type Message = {
 
 type RecordingState = "idle" | "recording" | "processing";
 
-type Props = {
-  token: string;
-};
-
 // enum Language {
 //   EN = "en",
 //   VI = "vi",
 //   JA = "ja",
 // }
 
-export const Client = ({ token }: Props) => {
+export const Client = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
@@ -121,7 +117,6 @@ export const Client = ({ token }: Props) => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
