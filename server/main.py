@@ -1,10 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
-import requests
-import json
 from fastapi import FastAPI, HTTPException, Header, UploadFile
 from pydantic import BaseModel
-import google.auth
-import google.auth.transport.requests
 import os
 from dotenv import load_dotenv
 from google.cloud import speech, texttospeech ,translate_v2 as translate
@@ -49,14 +45,6 @@ genai.configure(api_key=gemini_api_key)
 
 MAX_ALLOWED_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
-# トークン取得用の関数
-@app.get("/api/get-access-token")
-def get_access_token():
-    credentials, _your_project_id = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
-    auth_req = google.auth.transport.requests.Request()
-    credentials.refresh(auth_req) #refresh token
-    return {"token": credentials.token}
-
 # ヘルスチェックエンドポイント
 @app.get("/")
 def health_check():
@@ -64,7 +52,7 @@ def health_check():
 
 # 翻訳エンドポイント
 @app.post("/api/translate")
-def translate(request: TranslationRequest,     authorization: str = Header(None),  # Authorizationヘッダーを取得
+def translate(request: TranslationRequest
 ):
     text = request.text
     target_language = 'vi'  # ベトナム語を固定
@@ -78,17 +66,8 @@ def translate(request: TranslationRequest,     authorization: str = Header(None)
 # Google Text-to-Speech エンドポイント
 @app.post("/api/text-to-speech")
 def text_to_speech(
-    request: TextToSpeechRequest,
-    authorization: str = Header(None),  # Authorization ヘッダーを取得
+    request: TextToSpeechRequest
 ):
-    # アクセストークンを取得
-    access_token = authorization.split(" ")[1]
-    if not access_token:
-        raise HTTPException(status_code=500, detail="Unable to retrieve access token")
-
-    # Google Text-to-Speech APIのクライアントを作成
-    client = texttospeech.TextToSpeechClient()
-
     text = request.text
     language_code =  "vi-VN"
     voice_gender = texttospeech.SsmlVoiceGender.MALE
@@ -109,7 +88,7 @@ def text_to_speech(
     )
 
     # Google Text-to-Speech APIを呼び出す
-    response = client.synthesize_speech(
+    response = text_client.synthesize_speech(
         input=synthesis_input,
         voice=voice,
         audio_config=audio_config

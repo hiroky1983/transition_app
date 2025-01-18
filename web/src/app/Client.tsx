@@ -6,14 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { headers } from "@/lib/header";
 import axios from "axios";
 
-type Props = {
-  token: string;
-};
-
-const Client = ({ token }: Props) => {
+const Client = () => {
   const [inputWord, setInputWord] = useState("");
   const [translation, setTranslation] = useState("");
   const [audioSrc, setAudioSrc] = useState("");
@@ -22,13 +17,9 @@ const Client = ({ token }: Props) => {
 
   const handleTranslate = async () => {
     setAudioSrc("");
-    const textData = await axios.post(
-      "http://localhost:6001/api/translate",
-      {
-        text: inputWord, // リクエストボディ
-      },
-      headers(token)
-    );
+    const textData = await axios.post("http://localhost:6001/api/translate", {
+      text: inputWord, // リクエストボディ
+    });
 
     setTranslation(textData.data.translatedText);
 
@@ -36,9 +27,7 @@ const Client = ({ token }: Props) => {
       "http://localhost:6001/api/text-to-speech",
       {
         text: textData.data.translatedText, // リクエストボディ
-      },
-
-      headers(token)
+      }
     );
 
     setAudioSrc(voiceData.data.audioContent);
