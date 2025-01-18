@@ -7,8 +7,10 @@ import google.auth
 import google.auth.transport.requests
 import os
 from dotenv import load_dotenv
-from google.cloud import speech
+from google.cloud import speech, texttospeech
 import google.generativeai as genai
+import base64
+
 
 app = FastAPI()
 app.add_middleware(
@@ -20,7 +22,8 @@ app.add_middleware(
 )
 
 # Instantiates a client
-client = speech.SpeechClient()
+speech_client = speech.SpeechClient()
+text_client = texttospeech.TextToSpeechClient()
 
 # リクエストボディのモデル定義
 class TranslationRequest(BaseModel):
@@ -103,44 +106,41 @@ def text_to_speech(
     if not access_token:
         raise HTTPException(status_code=500, detail="Unable to retrieve access token")
 
-    # Google Text-to-Speech APIのリクエストURLとヘッダー
-    url = "https://texttospeech.googleapis.com/v1/text:synthesize"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json; charset=utf-8",
-        "x-goog-user-project": project_id
-    }
+    # Google Text-to-Speech APIのクライアントを作成
+    client = texttospeech.TextToSpeechClient()
 
     text = request.text
     language_code =  "vi-VN"
-    voice_gender = "MALE"
+    voice_gender = texttospeech.SsmlVoiceGender.MALE
     name = "vi-VN-Wavenet-A"
-    # ペイロードの作成
-    payload = {
-        "input": {"text": text},
-        "voice": {
-            "languageCode": language_code,
-            "name": name,
-            "ssmlGender": voice_gender
-        },
-        "audioConfig": {  
-            "audioEncoding": "MP3",
-            "speakingRate": 1,
-            "pitch": 0,
-            "volumeGainDb": 0
-            }
-        }
+
+    # リクエストのペイロードを作成
+    synthesis_input = texttospeech.SynthesisInput(text=text)
+    voice = texttospeech.VoiceSelectionParams(
+        language_code=language_code,
+        name=name,
+        ssml_gender=voice_gender
+    )
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3,
+        speaking_rate=1,
+        pitch=0,
+        volume_gain_db=0
+    )
 
     # Google Text-to-Speech APIを呼び出す
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        audio_content = response.json().get("audioContent")
-        if audio_content:
-            return {"audioContent": audio_content}
-        else:
-            raise HTTPException(status_code=500, detail="No audio content in response")
+    response = client.synthesize_speech(
+        input=synthesis_input,
+        voice=voice,
+        audio_config=audio_config
+    )
+
+    if response.audio_content:
+        # Base64エンコード
+        audio_content_base64 = base64.b64encode(response.audio_content).decode('utf-8')
+        return {"audioContent": audio_content_base64}
     else:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        raise HTTPException(status_code=500, detail="No audio content in response")
 
 
 @app.post("/api/speech-to-text")
@@ -167,7 +167,7 @@ async def speech_to_text(audio: UploadFile):
         )
 
         # Google Cloud Speech-to-Text API を呼び出す
-        response = client.recognize(config=config, audio=audio_content)
+        response = speech_client.recognize(config=config, audio=audio_content)
         print(response.results)
         # トランスクリプトを抽出
         transcripts = [
