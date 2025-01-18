@@ -7,7 +7,7 @@ import google.auth
 import google.auth.transport.requests
 import os
 from dotenv import load_dotenv
-from google.cloud import speech, texttospeech
+from google.cloud import speech, texttospeech ,translate_v2 as translate
 import google.generativeai as genai
 import base64
 
@@ -24,6 +24,7 @@ app.add_middleware(
 # Instantiates a client
 speech_client = speech.SpeechClient()
 text_client = texttospeech.TextToSpeechClient()
+translate_client = translate.Client()
 
 # リクエストボディのモデル定義
 class TranslationRequest(BaseModel):
@@ -66,34 +67,13 @@ def health_check():
 def translate(request: TranslationRequest,     authorization: str = Header(None),  # Authorizationヘッダーを取得
 ):
     text = request.text
-    source_language = 'ja'  # 日本語を固定
     target_language = 'vi'  # ベトナム語を固定
 
-    # Google Translation APIを呼び出す
-    access_token = authorization.split(" ")[1]
-    if not access_token:
-        raise HTTPException(status_code=500, detail="Unable to retrieve access token")
 
-    url = "https://translation.googleapis.com/language/translate/v2"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "x-goog-user-project": project_id,
-        "Content-Type": "application/json; charset=utf-8"
-    }
+    response = translate_client.translate(text, target_language)
 
-    payload = {
-        "q": text,
-        "source": source_language,
-        "target": target_language,
-        "format": "text"
-    }
-
-    response = requests.post(url, headers=headers, data=json.dumps(payload))
-    if response.status_code == 200:
-        translated_text = response.json().get("data", {}).get("translations", [])[0].get("translatedText")
-        return {"translatedText": translated_text}
-    else:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+    translated_text = response['translatedText']
+    return {"translatedText": translated_text}
     
 # Google Text-to-Speech エンドポイント
 @app.post("/api/text-to-speech")
