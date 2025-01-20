@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import { AxiosError } from "axios";
+import { textToSpeech, translate } from "./(actions)/api";
 
 const Client = () => {
   const [inputWord, setInputWord] = useState("");
@@ -17,20 +18,21 @@ const Client = () => {
 
   const handleTranslate = async () => {
     setAudioSrc("");
-    const textData = await axios.post("http://localhost:6001/api/translate", {
-      text: inputWord, // リクエストボディ
-    });
+    try {
+      const textData = await translate(inputWord);
+      setTranslation(textData.data.translatedText);
 
-    setTranslation(textData.data.translatedText);
-
-    const voiceData = await axios.post(
-      "http://localhost:6001/api/text-to-speech",
-      {
-        text: textData.data.translatedText, // リクエストボディ
+      const voiceData = await textToSpeech(textData.data.translatedText);
+      setAudioSrc(voiceData.data.audioContent);
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast({
+          title: "エラー",
+          description: error.message,
+          variant: "destructive",
+        });
       }
-    );
-
-    setAudioSrc(voiceData.data.audioContent);
+    }
   };
 
   const handleSave = async () => {
