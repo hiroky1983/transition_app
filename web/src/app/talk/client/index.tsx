@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { gemini, speechToText } from "@/app/(actions)/api";
 
 type Message = {
-  role: "user" | "ai";
+  role: "user" | "model";
   content: string;
   translation?: string;
 };
@@ -47,7 +47,7 @@ export const Client = () => {
     // Add AI response to conversation
     setConversation((prev) => [
       ...prev,
-      { role: "ai", content: res.data.text },
+      { role: "model", content: res.data.text },
     ]);
 
     setInputMessage("");
@@ -151,7 +151,7 @@ export const Client = () => {
                   <p>{message.translation}</p>
                 </div>
               )}
-              {message.role === "ai" && (
+              {message.role === "model" && (
                 <Button
                   onClick={() => handlePlayAudio(message.content)}
                   size="sm"
