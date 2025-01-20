@@ -61,6 +61,8 @@ def health_check():
 @app.post("/api/translate")
 def translate(request: TranslationRequest):
     text = request.text
+    if not text:
+        raise HTTPException(status_code=400, detail="Text is required")
     target_language = "vi"  # ベトナム語を固定
 
     response = translate_client.translate(text, target_language)
