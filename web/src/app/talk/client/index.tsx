@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
+import { gemini, speechToText } from "@/app/(actions)/api";
 
 type Message = {
   role: "user" | "ai";
@@ -43,9 +43,7 @@ export const Client = () => {
     // Add user message to conversation
     setConversation((prev) => [...prev, userMessage]);
 
-    const res = await axios.post("http://localhost:6001/api/gemini", {
-      text: inputMessage,
-    });
+    const res = await gemini(inputMessage);
     // Add AI response to conversation
     setConversation((prev) => [
       ...prev,
@@ -112,15 +110,7 @@ export const Client = () => {
     const formData = new FormData();
     formData.append("audio", audioFile);
     try {
-      const res = await axios.post(
-        "http://localhost:6001/api/speech-to-text",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await speechToText(formData);
 
       setInputMessage(res.data.transcripts[0]);
       console.log("Speech to text result:", res.data);

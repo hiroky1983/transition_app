@@ -9,3 +9,15 @@ export const textToSpeech = async (textData: string) =>
   await axios.post("http://localhost:6001/api/text-to-speech", {
     text: textData, // リクエストボディ
   });
+
+export const speechToText = async (formData: FormData) =>
+  await axios.post("http://localhost:6001/api/speech-to-text", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+export const gemini = async (inputMessage: string) =>
+  await axios.post("http://localhost:6001/api/gemini", {
+    text: inputMessage,
+  });
