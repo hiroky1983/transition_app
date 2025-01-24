@@ -1,0 +1,22 @@
+# terraform
+
+set up gcloud
+
+```bash
+gcloud auth login
+gcloud config set project [project_id]
+```
+
+set up terraform
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+destroy
+
+```bash
+terraform destroy
+```
