@@ -186,19 +186,22 @@ def create_notion(request: NotionRequest):
                         }
                     ]
                 },
-                "genre": {
-                    "rich_text": [
+                "tag": {
+                    "multi_select": [
                         {
-                            "text": {
-                                "content": request.genre
-                            }
+                            "name": request.genre
                         }
                     ]
                 },
-                "audio_content": {
-                    "file": {
-                        "url": request.audio_content
-                    }
+                "audio": {
+    "files": [
+        {
+            "name": "Audio File",
+            "external": {
+                                "url": request.audio_content
+                            }
+                        }
+                    ]
                 }
             }
         }
