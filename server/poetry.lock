@@ -549,6 +549,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "notion-client"
+version = "2.3.0"
+description = "Python client for the official Notion API"
+category = "main"
+optional = false
+python-versions = "<4,>=3.7"
+
+[package.dependencies]
+httpx = ">=0.23.0"
+
+[[package]]
 name = "orjson"
 version = "3.10.12"
 description = "Fast, correct Python JSON library supporting dataclasses, datetimes, and numpy"
@@ -963,7 +974,7 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.11"
-content-hash = "528053a6f4879a48f351da7a225d84a56ea7758c49db7669b2f70a29df9a4951"
+content-hash = "3884a7edcef96eab9bc39052c299c4d227d7442a540fc140f17d42854d9abfe6"
 
 [metadata.files]
 annotated-types = [
@@ -1380,6 +1391,10 @@ markupsafe = [
 mdurl = [
     {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
     {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
+]
+notion-client = [
+    {file = "notion-client-2.3.0.tar.gz", hash = "sha256:c4b4ae04ce182eb89611d41544dac710049683a4d7309c4b22fde52f81cbcb39"},
+    {file = "notion_client-2.3.0-py2.py3-none-any.whl", hash = "sha256:6696bb057b7872477077d6a3bb4299c4a7924450e7d168174e79cbf8e01d9576"},
 ]
 orjson = [
     {file = "orjson-3.10.12-cp310-cp310-macosx_10_15_x86_64.macosx_11_0_arm64.macosx_10_15_universal2.whl", hash = "sha256:ece01a7ec71d9940cc654c482907a6b65df27251255097629d0dea781f255c6d"},
