@@ -7,7 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
-import { textToSpeech, translate } from "./(actions)/api";
+import { createNotionDatabase, textToSpeech, translate } from "./(actions)/api";
+
+export type NotionRequest = {
+  title: string;
+  name_ja: string;
+  genre: string;
+  audio_content: string;
+};
 
 const Client = () => {
   const [inputWord, setInputWord] = useState("");
@@ -36,7 +43,14 @@ const Client = () => {
   };
 
   const handleSave = async () => {
-    // TODO: Implement save to database
+    const data = await createNotionDatabase({
+      title: translation,
+      name_ja: inputWord,
+      genre: tags,
+      audio_content: audioSrc,
+    });
+
+    console.log(data);
     toast({
       title: "保存しました",
       description: `${inputWord} (${translation}) をタグ "${tags}" で保存しました。`,

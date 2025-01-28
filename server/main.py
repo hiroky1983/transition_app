@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from google.cloud import speech, texttospeech, translate_v2 as translate
 import google.generativeai as genai
+from notion_client import Client as NotionClient
 import base64
 
 
@@ -17,11 +18,21 @@ app.add_middleware(
     allow_headers=["*"],  # 許可するHTTPヘッダー
 )
 
+# load env
+load_dotenv()
+project_id = os.getenv("GOOGLE_PROJECT_ID")
+gemini_api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
+notion_api_key = os.getenv("NOTION_API_KEY")
+notion_database_id = os.getenv("NOTION_DATABASE_ID")
+
+genai.configure(api_key=gemini_api_key)
+
+
 # Instantiates a client
 speech_client = speech.SpeechClient()
 text_client = texttospeech.TextToSpeechClient()
 translate_client = translate.Client()
-
+notion_client = NotionClient(auth=notion_api_key)
 
 # リクエストボディのモデル定義
 class TranslationRequest(BaseModel):
@@ -41,12 +52,11 @@ class SpeechToTextRequest(BaseModel):
 class GeminiRequest(BaseModel):
     text: str
 
-
-load_dotenv()
-project_id = os.getenv("GOOGLE_PROJECT_ID")
-gemini_api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
-
-genai.configure(api_key=gemini_api_key)
+class NotionRequest(BaseModel):
+    title: str
+    name_ja: str
+    genre: str
+    audio_content: str
 
 MAX_ALLOWED_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
@@ -150,6 +160,50 @@ def gemini(request: GeminiRequest):
     response = gemini_pro.generate_content(prompt)
     return {"text": response.text}
 
+@app.post("/api/create-notion")
+def create_notion(request: NotionRequest):
+    response = notion_client.pages.create(
+        **{
+            "parent": {
+                "database_id": notion_database_id
+            },
+            "properties": {
+                "Title": {
+                    "title": [
+                        {
+                            "text": {
+                                "content": request.title
+                            }
+                        }
+                    ]
+                },
+                "name_ja": {
+                    "rich_text": [
+                        {
+                            "text": {
+                                "content": request.name_ja
+                            }
+                        }
+                    ]
+                },
+                "genre": {
+                    "rich_text": [
+                        {
+                            "text": {
+                                "content": request.genre
+                            }
+                        }
+                    ]
+                },
+                "audio_content": {
+                    "file": {
+                        "url": request.audio_content
+                    }
+                }
+            }
+        }
+    )
+    return {"status": "OK", "response": response}
 
 # 実行用エントリポイント（uvicornを利用することを想定）
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { NotionRequest } from "../Client";
 
 export const translate = async (inputWord: string) =>
   await axios.post("http://localhost:6001/api/translate", {
@@ -21,3 +22,12 @@ export const gemini = async (inputMessage: string) =>
   await axios.post("http://localhost:6001/api/gemini", {
     text: inputMessage,
   });
+
+export const createNotionDatabase = async (input: NotionRequest) => {
+  await axios.post("http://localhost:6001/api/create-notion", {
+    title: input.title,
+    name_ja: input.name_ja,
+    genre: input.genre,
+    audio_content: input.audio_content,
+  });
+};
