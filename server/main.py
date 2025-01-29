@@ -3,10 +3,12 @@ from fastapi import FastAPI, HTTPException, Header, UploadFile
 from pydantic import BaseModel
 import os
 from dotenv import load_dotenv
-from google.cloud import speech, texttospeech, translate_v2 as translate
+from google.cloud import storage, speech, texttospeech, translate_v2 as translate
 import google.generativeai as genai
 from notion_client import Client as NotionClient
 import base64
+import datetime
+import asyncio
 
 
 app = FastAPI()
@@ -33,7 +35,7 @@ speech_client = speech.SpeechClient()
 text_client = texttospeech.TextToSpeechClient()
 translate_client = translate.Client()
 notion_client = NotionClient(auth=notion_api_key)
-
+storage_client = storage.Client(project=project_id)
 # リクエストボディのモデル定義
 class TranslationRequest(BaseModel):
     text: str
@@ -161,52 +163,73 @@ def gemini(request: GeminiRequest):
     return {"text": response.text}
 
 @app.post("/api/create-notion")
-def create_notion(request: NotionRequest):
-    response = notion_client.pages.create(
-        **{
-            "parent": {
-                "database_id": notion_database_id
-            },
-            "properties": {
-                "Title": {
-                    "title": [
-                        {
-                            "text": {
-                                "content": request.title
-                            }
-                        }
-                    ]
+async def create_notion(request: NotionRequest):
+        # Cloud Storageのバケット取得
+        bucket = storage_client.bucket("ai-project-443214-audio")
+        
+        # Base64デコード
+        audio_data = base64.b64decode(request.audio_content)
+        
+        # ファイル名を生成（タイムスタンプを使用して一意にする）
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        blob_name = f"audio_{timestamp}.wav"
+        blob = bucket.blob(blob_name)
+        
+        # メモリからデータをアップロード
+        blob.upload_from_string(audio_data, content_type="audio/wav")
+        
+        # 署名付きURLを生成（15分間有効）
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=datetime.timedelta(minutes=15),
+            method="GET"
+        )
+
+        response = notion_client.pages.create(
+            **{
+                "parent": {
+                    "database_id": notion_database_id
                 },
-                "name_ja": {
-                    "rich_text": [
-                        {
-                            "text": {
-                                "content": request.name_ja
+                "properties": {
+                    "name_vi": {
+                        "title": [
+                            {
+                                "text": {
+                                    "content": request.title
+                                }
                             }
-                        }
-                    ]
-                },
-                "tag": {
-                    "multi_select": [
-                        {
-                            "name": request.genre
-                        }
-                    ]
-                },
-                "audio": {
-    "files": [
-        {
-            "name": "Audio File",
-            "external": {
-                                "url": request.audio_content
+                        ]
+                    },
+                    "name_ja": {
+                        "rich_text": [
+                            {
+                                "text": {
+                                    "content": request.name_ja
+                                }
                             }
-                        }
-                    ]
+                        ]
+                    },
+                    "tag": {
+                        "multi_select": [
+                            {
+                                "name": request.genre
+                            }
+                        ]
+                    },
+                    "audio": {
+                        "files": [
+                            {
+                                "name": blob_name,
+                                "external": {
+                                    "url": url
+                                }
+                            }
+                        ]
+                    }
                 }
             }
-        }
-    )
-    return {"status": "OK", "response": response}
+        )
+        return {"status": "OK", "response": response}
 
 # 実行用エントリポイント（uvicornを利用することを想定）
 if __name__ == "__main__":
