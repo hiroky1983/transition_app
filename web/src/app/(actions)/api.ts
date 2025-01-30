@@ -1,5 +1,5 @@
 import axios from "axios";
-import { NotionRequest } from "../Client";
+import { NotionDatabase } from "../Client";
 
 export const translate = async (inputWord: string) =>
   await axios.post("http://localhost:6001/api/translate", {
@@ -23,7 +23,7 @@ export const gemini = async (inputMessage: string) =>
     text: inputMessage,
   });
 
-export const createNotionDatabase = async (input: NotionRequest) => {
+export const createNotionDatabase = async (input: NotionDatabase) => {
   await axios.post("http://localhost:6001/api/create-notion", {
     title: input.title,
     name_ja: input.name_ja,

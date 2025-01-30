@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
 import { createNotionDatabase, textToSpeech, translate } from "./(actions)/api";
 
-export type NotionRequest = {
+export type NotionDatabase = {
   title: string;
   name_ja: string;
   genre: string;
@@ -27,7 +27,13 @@ const Client = () => {
     setAudioSrc("");
     try {
       const textData = await translate(inputWord);
-      setTranslation(textData.data.translatedText);
+      if (textData.data.audio) {
+        setTranslation(textData.data.translatedText);
+        setAudioSrc(textData.data.audio);
+        setTags(textData.data.tag);
+        setInputWord(textData.data.name_ja);
+        return;
+      }
 
       const voiceData = await textToSpeech(textData.data.translatedText);
       setAudioSrc(voiceData.data.audioContent);
@@ -43,19 +49,19 @@ const Client = () => {
   };
 
   const handleSave = async () => {
-    const data = await createNotionDatabase({
+    await createNotionDatabase({
       title: translation,
       name_ja: inputWord,
       genre: tags,
       audio_content: audioSrc,
     });
 
-    console.log(data);
     toast({
       title: "保存しました",
       description: `${inputWord} (${translation}) をタグ "${tags}" で保存しました。`,
     });
   };
+
   return (
     <div className="space-y-4">
       <div>
