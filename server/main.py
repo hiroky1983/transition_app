@@ -60,6 +60,9 @@ class NotionRequest(BaseModel):
     genre: str
     audio_content: str
 
+class NotionGetRequest(BaseModel):
+    name_ja: str
+
 MAX_ALLOWED_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
 
@@ -75,6 +78,20 @@ def translate(request: TranslationRequest):
     text = request.text
     if not text:
         raise HTTPException(status_code=400, detail="Text is required")
+    
+    notion_response = notion_client.databases.query(
+        database_id=notion_database_id,
+        filter={
+            "property": "name_ja",
+            "rich_text": {
+                "contains": text
+            }
+        }
+    )
+
+    if notion_response["results"]:
+        return {"translatedText": notion_response["results"][0]["properties"]["name_vi"]["title"][0]["text"]["content"], "audio": notion_response["results"][0]["properties"]["audio"]["files"][0]["external"]["url"], "tag": notion_response["results"][0]["properties"]["tag"]["multi_select"][0]["name"], "name_ja": notion_response["results"][0]["properties"]["name_ja"]["rich_text"][0]["text"]["content"]}
+
     target_language = "vi"  # ベトナム語を固定
 
     response = translate_client.translate(text, target_language)
