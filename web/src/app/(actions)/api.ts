@@ -1,14 +1,16 @@
 import axios from "axios";
-import { NotionDatabase } from "../Client";
+import { NotionDatabase, TranslateResponse } from "../Client";
 
-export const translate = async (inputWord: string) =>
+export const translate = async (
+  inputWord: string
+): Promise<axios.AxiosResponse<TranslateResponse, unknown>> =>
   await axios.post("http://localhost:6001/api/translate", {
     text: inputWord, // リクエストボディ
   });
 
 export const textToSpeech = async (textData: string) =>
   await axios.post("http://localhost:6001/api/text-to-speech", {
-    text: textData, // リクエストボディ
+    translatedText: textData, // リクエストボディ
   });
 
 export const speechToText = async (formData: FormData) =>

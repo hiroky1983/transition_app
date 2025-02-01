@@ -11,10 +11,12 @@ import { createNotionDatabase, textToSpeech, translate } from "./(actions)/api";
 
 export type NotionDatabase = {
   title: string;
-  name_ja: string;
-  genre: string;
   audio_content: string;
+  genre: string;
+  name_ja: string;
 };
+
+export type TranslateResponse = NotionDatabase | { translatedText: string };
 
 const Client = () => {
   const [inputWord, setInputWord] = useState("");
@@ -27,13 +29,15 @@ const Client = () => {
     setAudioSrc("");
     try {
       const textData = await translate(inputWord);
-      if (textData.data.audio) {
-        setTranslation(textData.data.translatedText);
-        setAudioSrc(textData.data.audio);
-        setTags(textData.data.tag);
+      if (isNotionResponse(textData.data)) {
+        setTranslation(textData.data.title);
+        setAudioSrc(textData.data.audio_content);
+        setTags(textData.data.genre);
         setInputWord(textData.data.name_ja);
         return;
       }
+
+      setTranslation(textData.data.translatedText);
 
       const voiceData = await textToSpeech(textData.data.translatedText);
       setAudioSrc(voiceData.data.audioContent);
@@ -106,5 +110,9 @@ const Client = () => {
     </div>
   );
 };
+
+function isNotionResponse(data: TranslateResponse): data is NotionDatabase {
+  return "tag" in data && "audio" in data && "name_ja" in data;
+}
 
 export default Client;
