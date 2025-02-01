@@ -90,7 +90,12 @@ def translate(request: TranslationRequest):
     )
 
     if notion_response["results"]:
-        return {"translatedText": notion_response["results"][0]["properties"]["name_vi"]["title"][0]["text"]["content"], "audio": notion_response["results"][0]["properties"]["audio"]["files"][0]["external"]["url"], "tag": notion_response["results"][0]["properties"]["tag"]["multi_select"][0]["name"], "name_ja": notion_response["results"][0]["properties"]["name_ja"]["rich_text"][0]["text"]["content"]}
+        return {
+            "translatedText": notion_response["results"][0]["properties"]["name_vi"]["title"][0]["text"]["content"],
+            "audio": notion_response["results"][0]["properties"]["audio"]["files"][0]["external"]["url"],
+            "tag": notion_response["results"][0]["properties"]["tag"]["multi_select"][0]["name"],
+            "name_ja": notion_response["results"][0]["properties"]["name_ja"]["rich_text"][0]["text"]["content"]
+        }
 
     target_language = "vi"  # ベトナム語を固定
 
