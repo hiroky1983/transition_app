@@ -12,8 +12,15 @@ provider "google" {
   region  = "asia-northeast1"
 }
 
-resource "google_cloud_run_v2_service" "server" {
-  name     = "cloudrun-service"
+resource "google_artifact_registry_repository" "server" {
+  location = "asia-northeast1"
+  repository_id = "server"
+  format = "DOCKER"
+  project = var.project_id
+}
+
+resource "google_cloud_run_v2_service" "this" {
+  name     = "transion-app-server"
   location = "asia-northeast1"
   ingress = "INGRESS_TRAFFIC_ALL"
 
@@ -24,20 +31,31 @@ resource "google_cloud_run_v2_service" "server" {
   }
 }
 
-resource "google_artifact_registry_repository" "server" {
-  location = "asia-northeast1"
-  repository_id = "server"
-  format = "DOCKER"
-  project = var.project_id
-}
-
 resource "google_storage_bucket" "tfstate" {
   name     = "${var.project_id}-tfstate"
   location = "asia-northeast1"
 }
 
+resource "google_storage_bucket_object" "tfstate" {
+  name   = "terraform.tfstate"
+  bucket = google_storage_bucket.tfstate.name
+  content_type = "text/plain"
+  content = "terraform.tfstate"
+}
+
 resource "google_storage_bucket_iam_member" "tfstate_admin" {
   bucket = google_storage_bucket.tfstate.name
+  role   = "roles/storage.admin"
+  member = "user:hirockysan1983@gmail.com"
+}
+
+resource "google_storage_bucket" "audio" {
+  name     = "${var.project_id}-audio"
+  location = "asia-northeast1"
+}
+
+resource "google_storage_bucket_iam_member" "audio_admin" {
+  bucket = google_storage_bucket.audio.name
   role   = "roles/storage.admin"
   member = "user:hirockysan1983@gmail.com"
 }
