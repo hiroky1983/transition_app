@@ -45,7 +45,6 @@ class NotionRequest(BaseModel):
     title: str
     name_ja: str
     genre: str
-    audio_content: str
 
 class NotionGetRequest(BaseModel):
     name_ja: str
@@ -95,17 +94,11 @@ async def get_vocabulary_list():
 @app.post("/api/create-notion")
 async def create_notion(request: NotionRequest):
     try:
-        # Upload audio to Cloud Storage
-        audio_data = base64.b64decode(request.audio_content)
-        storage_result = google_service.upload_audio_to_storage(audio_data, BUCKET_NAME)
-
-        # Create Notion page
+        # Create Notion page without audio
         response = notion_service.create_page(
             request.title,
             request.name_ja,
-            request.genre,
-            storage_result["url"],
-            storage_result["blob_name"]
+            request.genre
         )
         
         return {"status": "OK", "response": response}

@@ -21,7 +21,6 @@ class NotionService:
             result = response["results"][0]
             return {
                 "translatedText": result["properties"]["name_vi"]["title"][0]["text"]["content"],
-                "audio": result["properties"]["audio"]["files"][0]["external"]["url"],
                 "tag": result["properties"]["tag"]["multi_select"][0]["name"],
                 "name_ja": result["properties"]["name_ja"]["rich_text"][0]["text"]["content"]
             }
@@ -46,8 +45,7 @@ class NotionService:
                     "id": result["id"],
                     "name_ja": result["properties"]["name_ja"]["rich_text"][0]["text"]["content"] if result["properties"]["name_ja"]["rich_text"] else "",
                     "name_vi": result["properties"]["name_vi"]["title"][0]["text"]["content"] if result["properties"]["name_vi"]["title"] else "",
-                    "tag": result["properties"]["tag"]["multi_select"][0]["name"] if result["properties"]["tag"]["multi_select"] else "",
-                    "audio_url": result["properties"]["audio"]["files"][0]["external"]["url"] if result["properties"]["audio"]["files"] else ""
+                    "tag": result["properties"]["tag"]["multi_select"][0]["name"] if result["properties"]["tag"]["multi_select"] else ""
                 }
                 vocabulary_list.append(vocabulary_item)
             except (KeyError, IndexError, TypeError):
@@ -59,7 +57,7 @@ class NotionService:
             "total_count": len(vocabulary_list)
         }
 
-    def create_page(self, title: str, name_ja: str, genre: str, audio_url: str, blob_name: str) -> Dict[str, Any]:
+    def create_page(self, title: str, name_ja: str, genre: str) -> Dict[str, Any]:
         response = self.client.pages.create(
             **{
                 "parent": {
@@ -88,16 +86,6 @@ class NotionService:
                         "multi_select": [
                             {
                                 "name": genre
-                            }
-                        ]
-                    },
-                    "audio": {
-                        "files": [
-                            {
-                                "name": blob_name,
-                                "external": {
-                                    "url": audio_url
-                                }
                             }
                         ]
                     }

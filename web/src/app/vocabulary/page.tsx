@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Volume2, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getVocabularyList } from "../(actions)/api";
 import Link from "next/link";
@@ -14,7 +14,6 @@ type VocabularyItem = {
   name_ja: string;
   name_vi: string;
   tag: string;
-  audio_url: string;
 };
 
 type VocabularyListResponse = {
@@ -65,19 +64,6 @@ const VocabularyListPage = () => {
     }
   };
 
-  const playAudio = (audioUrl: string) => {
-    if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.play().catch((error) => {
-        toast({
-          title: "音声再生エラー",
-          description: "音声の再生に失敗しました",
-          variant: "destructive",
-        });
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -117,8 +103,7 @@ const VocabularyListPage = () => {
       {/* 統計情報 */}
       <div className="mb-6 p-4 bg-gray-100 rounded-lg">
         <p className="text-sm text-gray-600">
-          総単語数: {vocabularyList.length} |{" "}
-          表示中: {filteredList.length}
+          総単語数: {vocabularyList.length} | 表示中: {filteredList.length}
         </p>
       </div>
 
@@ -136,16 +121,6 @@ const VocabularyListPage = () => {
                 </h3>
                 <p className="text-blue-600 font-medium">{item.name_vi}</p>
               </div>
-              {item.audio_url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => playAudio(item.audio_url)}
-                  className="ml-2"
-                >
-                  <Volume2 className="w-4 h-4" />
-                </Button>
-              )}
             </div>
             {item.tag && (
               <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
@@ -159,7 +134,9 @@ const VocabularyListPage = () => {
       {filteredList.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
-            {searchTerm ? "検索条件に一致する単語が見つかりません" : "単語帳が空です"}
+            {searchTerm
+              ? "検索条件に一致する単語が見つかりません"
+              : "単語帳が空です"}
           </p>
           {!searchTerm && (
             <Link href="/" className="text-blue-500 hover:underline mt-2 block">

@@ -30,7 +30,6 @@ export const createNotionDatabase = async (input: NotionDatabase) => {
     title: input.title,
     name_ja: input.name_ja,
     genre: input.genre,
-    audio_content: input.audio_content,
   });
 };
 

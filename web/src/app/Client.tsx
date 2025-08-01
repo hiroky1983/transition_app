@@ -11,7 +11,6 @@ import { createNotionDatabase, textToSpeech, translate } from "./(actions)/api";
 
 export type NotionDatabase = {
   title: string;
-  audio_content: string;
   genre: string;
   name_ja: string;
 };
@@ -31,7 +30,6 @@ const Client = () => {
       const textData = await translate(inputWord);
       if (isNotionResponse(textData.data)) {
         setTranslation(textData.data.title);
-        setAudioSrc(textData.data.audio_content);
         setTags(textData.data.genre);
         setInputWord(textData.data.name_ja);
         return;
@@ -57,7 +55,6 @@ const Client = () => {
       title: translation,
       name_ja: inputWord,
       genre: tags,
-      audio_content: audioSrc,
     });
 
     toast({
@@ -112,7 +109,7 @@ const Client = () => {
 };
 
 function isNotionResponse(data: TranslateResponse): data is NotionDatabase {
-  return "tag" in data && "audio" in data && "name_ja" in data;
+  return "tag" in data && "name_ja" in data;
 }
 
 export default Client;
