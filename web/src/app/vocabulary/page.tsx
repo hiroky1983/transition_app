@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,30 +22,41 @@ type VocabularyListResponse = {
   total_count: number;
 };
 
+type SearchFormData = {
+  searchTerm: string;
+};
+
 const VocabularyListPage = () => {
   const [vocabularyList, setVocabularyList] = useState<VocabularyItem[]>([]);
   const [filteredList, setFilteredList] = useState<VocabularyItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  const searchForm = useForm<SearchFormData>({
+    defaultValues: {
+      searchTerm: ""
+    }
+  });
+  
+  const watchedSearchTerm = searchForm.watch("searchTerm");
 
   useEffect(() => {
     fetchVocabularyList();
   }, []);
 
   useEffect(() => {
-    if (searchTerm === "") {
+    if (watchedSearchTerm === "") {
       setFilteredList(vocabularyList);
     } else {
       const filtered = vocabularyList.filter(
         (item) =>
-          item.name_ja.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.name_vi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.tag.toLowerCase().includes(searchTerm.toLowerCase())
+          item.name_ja.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
+          item.name_vi.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
+          item.tag.toLowerCase().includes(watchedSearchTerm.toLowerCase())
       );
       setFilteredList(filtered);
     }
-  }, [searchTerm, vocabularyList]);
+  }, [watchedSearchTerm, vocabularyList]);
 
   const fetchVocabularyList = async () => {
     try {
@@ -93,8 +105,7 @@ const VocabularyListPage = () => {
             id="search"
             type="text"
             placeholder="日本語、ベトナム語、タグで検索..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            {...searchForm.register("searchTerm")}
             className="pl-10"
           />
         </div>
@@ -134,11 +145,11 @@ const VocabularyListPage = () => {
       {filteredList.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
-            {searchTerm
+            {watchedSearchTerm
               ? "検索条件に一致する単語が見つかりません"
               : "単語帳が空です"}
           </p>
-          {!searchTerm && (
+          {!watchedSearchTerm && (
             <Link href="/" className="text-blue-500 hover:underline mt-2 block">
               最初の単語を追加しましょう
             </Link>

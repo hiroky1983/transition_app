@@ -5,6 +5,7 @@ import { Volume2, Mic, Send, Edit2, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useRef } from "react";
+import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import { gemini, speechToText } from "@/app/(actions)/api";
 
@@ -16,6 +17,10 @@ type Message = {
 
 type RecordingState = "idle" | "recording" | "processing";
 
+type MessageFormData = {
+  inputMessage: string;
+};
+
 // enum Language {
 //   EN = "en",
 //   VI = "vi",
@@ -23,34 +28,49 @@ type RecordingState = "idle" | "recording" | "processing";
 // }
 
 export const Client = () => {
-  const [inputMessage, setInputMessage] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  
+  const messageForm = useForm<MessageFormData>({
+    defaultValues: {
+      inputMessage: ""
+    }
+  });
+  
+  const watchedInputMessage = messageForm.watch("inputMessage");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async (data: MessageFormData) => {
+    if (!data.inputMessage.trim()) return;
 
     const userMessage: Message = {
       role: "user",
-      content: inputMessage,
+      content: data.inputMessage,
     };
 
     // Add user message to conversation
     setConversation((prev) => [...prev, userMessage]);
 
-    const res = await gemini(inputMessage);
-    // Add AI response to conversation
-    setConversation((prev) => [
-      ...prev,
-      { role: "model", content: res.data.text },
-    ]);
+    try {
+      const res = await gemini(data.inputMessage);
+      // Add AI response to conversation
+      setConversation((prev) => [
+        ...prev,
+        { role: "model", content: res.data.text },
+      ]);
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "メッセージの送信に失敗しました。",
+        variant: "destructive",
+      });
+    }
 
-    setInputMessage("");
+    messageForm.reset();
     setIsEditing(false);
   };
 
@@ -112,7 +132,7 @@ export const Client = () => {
     try {
       const res = await speechToText(formData);
 
-      setInputMessage(res.data.transcripts[0]);
+      messageForm.setValue("inputMessage", res.data.transcripts[0]);
       console.log("Speech to text result:", res.data);
     } catch (error) {
       console.error("Error:", error);
@@ -165,16 +185,16 @@ export const Client = () => {
           </div>
         ))}
       </div>
-      <div className="flex items-center space-x-2">
+      <form onSubmit={messageForm.handleSubmit(handleSendMessage)} className="flex items-center space-x-2">
         {isEditing ? (
           <Input
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
+            {...messageForm.register("inputMessage", { required: "メッセージを入力してください" })}
             placeholder="音声入力結果を編集"
             className="flex-grow"
           />
         ) : (
           <Button
+            type="button"
             onClick={recordingState === "idle" ? startRecording : stopRecording}
             className="flex-grow"
           >
@@ -195,6 +215,7 @@ export const Client = () => {
         )}
         {isEditing && (
           <Button
+            type="button"
             onClick={() => setIsEditing(false)}
             variant="outline"
             aria-label="音声入力に戻る"
@@ -202,8 +223,9 @@ export const Client = () => {
             <Mic className="w-4 h-4" />
           </Button>
         )}
-        {!isEditing && inputMessage && (
+        {!isEditing && watchedInputMessage && (
           <Button
+            type="button"
             onClick={() => setIsEditing(true)}
             variant="outline"
             aria-label="テキストを編集"
@@ -212,13 +234,13 @@ export const Client = () => {
           </Button>
         )}
         <Button
-          onClick={handleSendMessage}
-          disabled={!inputMessage.trim()}
+          type="submit"
+          disabled={!watchedInputMessage.trim() || messageForm.formState.isSubmitting}
           aria-label="メッセージを送信"
         >
           <Send className="w-4 h-4" />
         </Button>
-      </div>
+      </form>
     </div>
   );
 };

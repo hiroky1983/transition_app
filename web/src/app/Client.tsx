@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,25 +18,46 @@ export type NotionDatabase = {
 
 export type TranslateResponse = NotionDatabase | { translatedText: string };
 
+type TranslateFormData = {
+  inputWord: string;
+};
+
+type SaveFormData = {
+  tags: string;
+};
+
 const Client = () => {
-  const [inputWord, setInputWord] = useState("");
   const [translation, setTranslation] = useState("");
   const [audioSrc, setAudioSrc] = useState("");
-  const [tags, setTags] = useState("");
+  const [originalWord, setOriginalWord] = useState("");
   const { toast } = useToast();
+  
+  const translateForm = useForm<TranslateFormData>({
+    defaultValues: {
+      inputWord: ""
+    }
+  });
+  
+  const saveForm = useForm<SaveFormData>({
+    defaultValues: {
+      tags: ""
+    }
+  });
 
-  const handleTranslate = async () => {
+  const handleTranslate = async (data: TranslateFormData) => {
     setAudioSrc("");
     try {
-      const textData = await translate(inputWord);
+      const textData = await translate(data.inputWord);
       if (isNotionResponse(textData.data)) {
         setTranslation(textData.data.title);
-        setTags(textData.data.genre);
-        setInputWord(textData.data.name_ja);
+        saveForm.setValue("tags", textData.data.genre);
+        setOriginalWord(textData.data.name_ja);
+        translateForm.setValue("inputWord", textData.data.name_ja);
         return;
       }
 
       setTranslation(textData.data.translatedText);
+      setOriginalWord(data.inputWord);
 
       const voiceData = await textToSpeech(textData.data.translatedText);
       setAudioSrc(voiceData.data.audioContent);
@@ -50,31 +72,47 @@ const Client = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (data: SaveFormData) => {
     await createNotionDatabase({
       title: translation,
-      name_ja: inputWord,
-      genre: tags,
+      name_ja: originalWord,
+      genre: data.tags,
     });
 
     toast({
       title: "保存しました",
-      description: `${inputWord} (${translation}) をタグ "${tags}" で保存しました。`,
+      description: `${originalWord} (${translation}) をタグ "${data.tags}" で保存しました。`,
     });
+    
+    // フォームをリセット
+    translateForm.reset();
+    saveForm.reset();
+    setTranslation("");
+    setAudioSrc("");
+    setOriginalWord("");
   };
 
   return (
     <div className="space-y-4">
-      <div>
-        <Label htmlFor="word-input">日本語の単語</Label>
-        <Input
-          id="word-input"
-          value={inputWord}
-          onChange={(e) => setInputWord(e.target.value)}
-          placeholder="翻訳したい単語を入力"
-        />
-      </div>
-      <Button onClick={handleTranslate}>翻訳</Button>
+      <form onSubmit={translateForm.handleSubmit(handleTranslate)} className="space-y-4">
+        <div>
+          <Label htmlFor="word-input">日本語の単語</Label>
+          <Input
+            id="word-input"
+            {...translateForm.register("inputWord", { required: "単語を入力してください" })}
+            placeholder="翻訳したい単語を入力"
+          />
+          {translateForm.formState.errors.inputWord && (
+            <p className="text-red-500 text-sm mt-1">
+              {translateForm.formState.errors.inputWord.message}
+            </p>
+          )}
+        </div>
+        <Button type="submit" disabled={translateForm.formState.isSubmitting}>
+          {translateForm.formState.isSubmitting ? "翻訳中..." : "翻訳"}
+        </Button>
+      </form>
+      
       {translation && (
         <div className="p-4 bg-gray-100 rounded-md">
           <p className="font-bold">翻訳結果：</p>
@@ -90,26 +128,33 @@ const Client = () => {
           )}
         </div>
       )}
+      
       {translation && (
-        <>
+        <form onSubmit={saveForm.handleSubmit(handleSave)} className="space-y-4">
           <div>
             <Label htmlFor="tags-input">タグ</Label>
             <Input
               id="tags-input"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
+              {...saveForm.register("tags", { required: "タグを入力してください" })}
               placeholder="カンマ区切りでタグを入力"
             />
+            {saveForm.formState.errors.tags && (
+              <p className="text-red-500 text-sm mt-1">
+                {saveForm.formState.errors.tags.message}
+              </p>
+            )}
           </div>
-          <Button onClick={handleSave}>保存</Button>
-        </>
+          <Button type="submit" disabled={saveForm.formState.isSubmitting}>
+            {saveForm.formState.isSubmitting ? "保存中..." : "保存"}
+          </Button>
+        </form>
       )}
     </div>
   );
 };
 
 function isNotionResponse(data: TranslateResponse): data is NotionDatabase {
-  return "tag" in data && "name_ja" in data;
+  return "genre" in data && "name_ja" in data;
 }
 
 export default Client;
