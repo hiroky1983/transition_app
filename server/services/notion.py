@@ -27,6 +27,38 @@ class NotionService:
             }
         return None
 
+    def get_all_vocabulary(self) -> Dict[str, Any]:
+        """Notionデータベースから全ての単語帳データを取得"""
+        response = self.client.databases.query(
+            database_id=self.database_id,
+            sorts=[
+                {
+                    "property": "name_ja",
+                    "direction": "ascending"
+                }
+            ]
+        )
+        
+        vocabulary_list = []
+        for result in response["results"]:
+            try:
+                vocabulary_item = {
+                    "id": result["id"],
+                    "name_ja": result["properties"]["name_ja"]["rich_text"][0]["text"]["content"] if result["properties"]["name_ja"]["rich_text"] else "",
+                    "name_vi": result["properties"]["name_vi"]["title"][0]["text"]["content"] if result["properties"]["name_vi"]["title"] else "",
+                    "tag": result["properties"]["tag"]["multi_select"][0]["name"] if result["properties"]["tag"]["multi_select"] else "",
+                    "audio_url": result["properties"]["audio"]["files"][0]["external"]["url"] if result["properties"]["audio"]["files"] else ""
+                }
+                vocabulary_list.append(vocabulary_item)
+            except (KeyError, IndexError, TypeError):
+                # データが不完全な場合はスキップ
+                continue
+        
+        return {
+            "vocabulary_list": vocabulary_list,
+            "total_count": len(vocabulary_list)
+        }
+
     def create_page(self, title: str, name_ja: str, genre: str, audio_url: str, blob_name: str) -> Dict[str, Any]:
         response = self.client.pages.create(
             **{

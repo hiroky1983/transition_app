@@ -33,3 +33,6 @@ export const createNotionDatabase = async (input: NotionDatabase) => {
     audio_content: input.audio_content,
   });
 };
+
+export const getVocabularyList = async () =>
+  await axios.get("http://localhost:6001/api/vocabulary-list");

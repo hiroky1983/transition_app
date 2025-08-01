@@ -14,7 +14,17 @@ export function Navigation() {
             : "text-gray-700 hover:bg-gray-200"
         }`}
       >
-        単語帳
+        翻訳
+      </Link>
+      <Link
+        href="/vocabulary"
+        className={`px-3 py-2 rounded-md ${
+          pathname === "/vocabulary"
+            ? "bg-blue-500 text-white"
+            : "text-gray-700 hover:bg-gray-200"
+        }`}
+      >
+        単語帳一覧
       </Link>
       <Link
         href="/talk"

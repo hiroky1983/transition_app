@@ -10,7 +10,7 @@ from services.notion import NotionService
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3003"],  # 許可するオリジンを指定
+    allow_origins=["http://localhost:3000", "http://localhost:3003"],  # 許可するオリジンを指定
     allow_credentials=True,  # Cookieを含むリクエストを許可
     allow_methods=["*"],  # 許可するHTTPメソッド（GET, POSTなど）
     allow_headers=["*"],  # 許可するHTTPヘッダー
@@ -82,6 +82,15 @@ async def speech_to_text(audio: UploadFile):
 @app.post("/api/gemini")
 async def gemini(request: GeminiRequest):
     return google_service.generate_gemini_response(request.text)
+
+@app.get("/api/vocabulary-list")
+async def get_vocabulary_list():
+    """単語帳一覧を取得するエンドポイント"""
+    try:
+        result = notion_service.get_all_vocabulary()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/create-notion")
 async def create_notion(request: NotionRequest):
