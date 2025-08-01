@@ -29,9 +29,12 @@ export const createNotionDatabase = async (input: NotionDatabase) => {
   await axios.post("http://localhost:6001/api/create-notion", {
     title: input.title,
     name_ja: input.name_ja,
-    genre: input.genre,
+    tags: input.tags,
   });
 };
 
 export const getVocabularyList = async () =>
   await axios.get("http://localhost:6001/api/vocabulary-list");
+
+export const getTags = async () =>
+  await axios.get("http://localhost:6001/api/tags");

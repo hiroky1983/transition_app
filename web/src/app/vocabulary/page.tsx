@@ -14,7 +14,7 @@ type VocabularyItem = {
   id: string;
   name_ja: string;
   name_vi: string;
-  tag: string;
+  tags: string[];
 };
 
 type VocabularyListResponse = {
@@ -52,7 +52,7 @@ const VocabularyListPage = () => {
         (item) =>
           item.name_ja.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
           item.name_vi.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
-          item.tag.toLowerCase().includes(watchedSearchTerm.toLowerCase())
+          item.tags.some(tag => tag.toLowerCase().includes(watchedSearchTerm.toLowerCase()))
       );
       setFilteredList(filtered);
     }
@@ -133,10 +133,14 @@ const VocabularyListPage = () => {
                 <p className="text-blue-600 font-medium">{item.name_vi}</p>
               </div>
             </div>
-            {item.tag && (
-              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {item.tag}
-              </span>
+            {item.tags && item.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {item.tags.map((tag, index) => (
+                  <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         ))}

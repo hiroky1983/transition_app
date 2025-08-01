@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AxiosError } from "axios";
-import { createNotionDatabase, textToSpeech, translate } from "./(actions)/api";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { createNotionDatabase, textToSpeech, translate, getTags } from "./(actions)/api";
 
 export type NotionDatabase = {
   title: string;
-  genre: string;
+  tags: string[];
   name_ja: string;
 };
 
@@ -23,13 +24,14 @@ type TranslateFormData = {
 };
 
 type SaveFormData = {
-  tags: string;
+  tags: string[];
 };
 
 const Client = () => {
   const [translation, setTranslation] = useState("");
   const [audioSrc, setAudioSrc] = useState("");
   const [originalWord, setOriginalWord] = useState("");
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const { toast } = useToast();
   
   const translateForm = useForm<TranslateFormData>({
@@ -40,9 +42,22 @@ const Client = () => {
   
   const saveForm = useForm<SaveFormData>({
     defaultValues: {
-      tags: ""
+      tags: []
     }
   });
+  
+  useEffect(() => {
+    fetchAvailableTags();
+  }, []);
+  
+  const fetchAvailableTags = async () => {
+    try {
+      const response = await getTags();
+      setAvailableTags(response.data.tags);
+    } catch (error) {
+      console.error("Failed to fetch tags:", error);
+    }
+  };
 
   const handleTranslate = async (data: TranslateFormData) => {
     setAudioSrc("");
@@ -50,7 +65,7 @@ const Client = () => {
       const textData = await translate(data.inputWord);
       if (isNotionResponse(textData.data)) {
         setTranslation(textData.data.title);
-        saveForm.setValue("tags", textData.data.genre);
+        saveForm.setValue("tags", textData.data.tags);
         setOriginalWord(textData.data.name_ja);
         translateForm.setValue("inputWord", textData.data.name_ja);
         return;
@@ -76,13 +91,16 @@ const Client = () => {
     await createNotionDatabase({
       title: translation,
       name_ja: originalWord,
-      genre: data.tags,
+      tags: data.tags,
     });
 
     toast({
       title: "保存しました",
-      description: `${originalWord} (${translation}) をタグ "${data.tags}" で保存しました。`,
+      description: `${originalWord} (${translation}) をタグ [${data.tags.join(", ")}] で保存しました。`,
     });
+    
+    // タグリストを更新
+    fetchAvailableTags();
     
     // フォームをリセット
     translateForm.reset();
@@ -133,10 +151,12 @@ const Client = () => {
         <form onSubmit={saveForm.handleSubmit(handleSave)} className="space-y-4">
           <div>
             <Label htmlFor="tags-input">タグ</Label>
-            <Input
-              id="tags-input"
-              {...saveForm.register("tags", { required: "タグを入力してください" })}
-              placeholder="カンマ区切りでタグを入力"
+            <MultiSelect
+              options={availableTags}
+              selected={saveForm.watch("tags")}
+              onChange={(selected) => saveForm.setValue("tags", selected)}
+              placeholder="タグを選択または新規作成..."
+              className="mt-1"
             />
             {saveForm.formState.errors.tags && (
               <p className="text-red-500 text-sm mt-1">
@@ -154,7 +174,7 @@ const Client = () => {
 };
 
 function isNotionResponse(data: TranslateResponse): data is NotionDatabase {
-  return "genre" in data && "name_ja" in data;
+  return "tags" in data && "name_ja" in data;
 }
 
 export default Client;

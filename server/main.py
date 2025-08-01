@@ -44,7 +44,7 @@ class GeminiRequest(BaseModel):
 class NotionRequest(BaseModel):
     title: str
     name_ja: str
-    genre: str
+    tags: list[str]  # Changed from genre to tags array
 
 class NotionGetRequest(BaseModel):
     name_ja: str
@@ -91,6 +91,15 @@ async def get_vocabulary_list():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/tags")
+async def get_tags():
+    """既存のタグ一覧を取得するエンドポイント"""
+    try:
+        result = notion_service.get_all_tags()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/create-notion")
 async def create_notion(request: NotionRequest):
     try:
@@ -98,7 +107,7 @@ async def create_notion(request: NotionRequest):
         response = notion_service.create_page(
             request.title,
             request.name_ja,
-            request.genre
+            request.tags
         )
         
         return {"status": "OK", "response": response}

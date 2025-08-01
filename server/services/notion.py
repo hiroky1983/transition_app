@@ -19,9 +19,10 @@ class NotionService:
 
         if response["results"]:
             result = response["results"][0]
+            tags = [tag["name"] for tag in result["properties"]["tag"]["multi_select"]] if result["properties"]["tag"]["multi_select"] else []
             return {
                 "translatedText": result["properties"]["name_vi"]["title"][0]["text"]["content"],
-                "tag": result["properties"]["tag"]["multi_select"][0]["name"],
+                "tags": tags,
                 "name_ja": result["properties"]["name_ja"]["rich_text"][0]["text"]["content"]
             }
         return None
@@ -45,7 +46,7 @@ class NotionService:
                     "id": result["id"],
                     "name_ja": result["properties"]["name_ja"]["rich_text"][0]["text"]["content"] if result["properties"]["name_ja"]["rich_text"] else "",
                     "name_vi": result["properties"]["name_vi"]["title"][0]["text"]["content"] if result["properties"]["name_vi"]["title"] else "",
-                    "tag": result["properties"]["tag"]["multi_select"][0]["name"] if result["properties"]["tag"]["multi_select"] else ""
+                    "tags": [tag["name"] for tag in result["properties"]["tag"]["multi_select"]] if result["properties"]["tag"]["multi_select"] else []
                 }
                 vocabulary_list.append(vocabulary_item)
             except (KeyError, IndexError, TypeError):
@@ -56,8 +57,28 @@ class NotionService:
             "vocabulary_list": vocabulary_list,
             "total_count": len(vocabulary_list)
         }
+    
+    def get_all_tags(self) -> Dict[str, Any]:
+        """Notionデータベースから全てのユニークなタグを取得"""
+        response = self.client.databases.query(
+            database_id=self.database_id
+        )
+        
+        tags_set = set()
+        for result in response["results"]:
+            try:
+                if result["properties"]["tag"]["multi_select"]:
+                    for tag_item in result["properties"]["tag"]["multi_select"]:
+                        tags_set.add(tag_item["name"])
+            except (KeyError, IndexError, TypeError):
+                continue
+        
+        return {
+            "tags": sorted(list(tags_set)),
+            "total_count": len(tags_set)
+        }
 
-    def create_page(self, title: str, name_ja: str, genre: str) -> Dict[str, Any]:
+    def create_page(self, title: str, name_ja: str, tags: list[str]) -> Dict[str, Any]:
         response = self.client.pages.create(
             **{
                 "parent": {
@@ -84,9 +105,7 @@ class NotionService:
                     },
                     "tag": {
                         "multi_select": [
-                            {
-                                "name": genre
-                            }
+                            {"name": tag} for tag in tags
                         ]
                     }
                 }
