@@ -4,7 +4,6 @@ import * as React from "react";
 import { X, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
@@ -126,7 +125,7 @@ export function MultiSelect({
                     }}
                   >
                     <Check className="mr-2 h-4 w-4 opacity-0" />
-                    Create "{inputValue.trim()}"
+                    Create &quot;{inputValue.trim()}&quot;
                   </CommandItem>
                 </CommandGroup>
               )}
@@ -143,7 +142,9 @@ export function MultiSelect({
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          selected.includes(option) ? "opacity-100" : "opacity-0"
+                          selected.includes(option)
+                            ? "opacity-100"
+                            : "opacity-0"
                         )}
                       />
                       {option}

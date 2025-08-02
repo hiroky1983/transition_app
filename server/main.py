@@ -107,7 +107,7 @@ async def create_notion(request: NotionRequest):
         response = notion_service.create_page(
             request.title,
             request.name_ja,
-            request.tags
+            request.genre
         )
         
         return {"status": "OK", "response": response}

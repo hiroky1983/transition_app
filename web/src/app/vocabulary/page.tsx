@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
@@ -31,13 +30,13 @@ const VocabularyListPage = () => {
   const [filteredList, setFilteredList] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  
+
   const searchForm = useForm<SearchFormData>({
     defaultValues: {
-      searchTerm: ""
-    }
+      searchTerm: "",
+    },
   });
-  
+
   const watchedSearchTerm = searchForm.watch("searchTerm");
 
   useEffect(() => {
@@ -50,9 +49,15 @@ const VocabularyListPage = () => {
     } else {
       const filtered = vocabularyList.filter(
         (item) =>
-          item.name_ja.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
-          item.name_vi.toLowerCase().includes(watchedSearchTerm.toLowerCase()) ||
-          item.tags.some(tag => tag.toLowerCase().includes(watchedSearchTerm.toLowerCase()))
+          item.name_ja
+            .toLowerCase()
+            .includes(watchedSearchTerm.toLowerCase()) ||
+          item.name_vi
+            .toLowerCase()
+            .includes(watchedSearchTerm.toLowerCase()) ||
+          item.tags.some((tag) =>
+            tag.toLowerCase().includes(watchedSearchTerm.toLowerCase())
+          )
       );
       setFilteredList(filtered);
     }
@@ -66,6 +71,7 @@ const VocabularyListPage = () => {
       setVocabularyList(data.vocabulary_list);
       setFilteredList(data.vocabulary_list);
     } catch (error) {
+      console.error(error);
       toast({
         title: "エラー",
         description: "単語帳の取得に失敗しました",
@@ -136,7 +142,10 @@ const VocabularyListPage = () => {
             {item.tags && item.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {item.tags.map((tag, index) => (
-                  <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  <span
+                    key={index}
+                    className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  >
                     {tag}
                   </span>
                 ))}
