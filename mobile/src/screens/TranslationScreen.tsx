@@ -17,6 +17,7 @@ import {
   getTags,
   NotionDatabase,
   TranslateResponse,
+  NotionFoundResponse,
 } from "../services/api";
 
 type TranslateFormData = {
@@ -27,8 +28,8 @@ type SaveFormData = {
   tags: string[];
 };
 
-function isNotionResponse(data: TranslateResponse): data is NotionDatabase {
-  return "genre" in data && "name_ja" in data;
+function isNotionFoundResponse(data: TranslateResponse): data is NotionFoundResponse {
+  return "tag" in data && "name_ja" in data;
 }
 
 export default function TranslationScreen() {
@@ -75,9 +76,9 @@ export default function TranslationScreen() {
     try {
       const textData = await translate(data.inputWord);
 
-      if (isNotionResponse(textData.data)) {
-        setTranslation(textData.data.title);
-        setSelectedTags([textData.data.genre]);
+      if (isNotionFoundResponse(textData.data)) {
+        setTranslation(textData.data.translatedText);
+        setSelectedTags([textData.data.tag]);
         setOriginalWord(textData.data.name_ja);
         setTranslateValue("inputWord", textData.data.name_ja);
         return;

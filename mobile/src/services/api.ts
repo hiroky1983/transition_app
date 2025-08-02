@@ -6,9 +6,19 @@ export type NotionDatabase = {
   name_ja: string;
 };
 
-export type TranslateResponse =
-  | { translatedText: string; tag: string; name_ja: string }
-  | { translatedText: string };
+// Server response when word is found in Notion
+export type NotionFoundResponse = {
+  translatedText: string;
+  tag: string;
+  name_ja: string;
+};
+
+// Server response when word is not found (new translation)
+export type NewTranslationResponse = {
+  translatedText: string;
+};
+
+export type TranslateResponse = NotionFoundResponse | NewTranslationResponse;
 
 export type VocabularyItem = {
   id: string;
