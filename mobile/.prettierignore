@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.expo/
+dist/
+web-build/
+
+# Generated files
+expo-env.d.ts
+*.d.ts
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Assets
+assets/
+
+# Logs
+*.log

@@ -49,10 +49,7 @@ class NotionRequest(BaseModel):
 class NotionGetRequest(BaseModel):
     name_ja: str
 
-# ヘルスチェックエンドポイント
-@app.get("/")
-def health_check():
-    return {"status": "OK"}
+
 
 # 翻訳エンドポイント
 @app.post("/api/translate")

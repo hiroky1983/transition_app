@@ -64,6 +64,9 @@ export default function TranslationScreen() {
       setAvailableTags(response.data.tags);
     } catch (error) {
       console.error("Failed to fetch tags:", error);
+      // Don't show alert for tags fetch failure as it's not critical
+      // Just use empty tags array
+      setAvailableTags([]);
     }
   };
 
