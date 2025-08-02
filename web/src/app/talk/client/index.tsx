@@ -32,13 +32,13 @@ export const Client = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  
+
   const messageForm = useForm<MessageFormData>({
     defaultValues: {
-      inputMessage: ""
-    }
+      inputMessage: "",
+    },
   });
-  
+
   const watchedInputMessage = messageForm.watch("inputMessage");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -63,6 +63,7 @@ export const Client = () => {
         { role: "model", content: res.data.text },
       ]);
     } catch (error) {
+      console.error(error);
       toast({
         title: "エラー",
         description: "メッセージの送信に失敗しました。",
@@ -185,10 +186,15 @@ export const Client = () => {
           </div>
         ))}
       </div>
-      <form onSubmit={messageForm.handleSubmit(handleSendMessage)} className="flex items-center space-x-2">
+      <form
+        onSubmit={messageForm.handleSubmit(handleSendMessage)}
+        className="flex items-center space-x-2"
+      >
         {isEditing ? (
           <Input
-            {...messageForm.register("inputMessage", { required: "メッセージを入力してください" })}
+            {...messageForm.register("inputMessage", {
+              required: "メッセージを入力してください",
+            })}
             placeholder="音声入力結果を編集"
             className="flex-grow"
           />
@@ -235,7 +241,9 @@ export const Client = () => {
         )}
         <Button
           type="submit"
-          disabled={!watchedInputMessage.trim() || messageForm.formState.isSubmitting}
+          disabled={
+            !watchedInputMessage.trim() || messageForm.formState.isSubmitting
+          }
           aria-label="メッセージを送信"
         >
           <Send className="w-4 h-4" />
